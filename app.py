@@ -48,8 +48,8 @@ def get_province_detail(province_id):
     
     if not result:
         return jsonify(
-        code  = '404',
-        message   = 'Data Not Found',), 404
+            code  = '404',
+            message   = 'Data Not Found',), 404
         
     row_headers=[x[0] for x in cursor.description]
     json_data = []
@@ -89,8 +89,8 @@ def get_regency_detail(regency_id):
     
     if not result:
         return jsonify(
-        code  = '404',
-        message   = 'Data Not Found',), 404
+            code  = '404',
+            message   = 'Data Not Found',), 404
         
     row_headers=[x[0] for x in cursor.description]
     json_data = []
@@ -117,8 +117,8 @@ def get_regencies_by_province(province_id):
     
     if not result:
         return jsonify(
-        code  = '404',
-        message   = 'Data Not Found',), 404
+            code  = '404',
+            message   = 'Data Not Found',), 404
         
     row_headers=[x[0] for x in cursor.description]
     json_data = []
@@ -165,8 +165,8 @@ def get_district_detail(district_id):
     
     if not result:
         return jsonify(
-        code  = '404',
-        message   = 'Data Not Found',), 404
+            code  = '404',
+            message   = 'Data Not Found',), 404
         
     row_headers=[x[0] for x in cursor.description]
     json_data = []
@@ -194,8 +194,8 @@ def get_districts_by_regency(regency_id):
     
     if not result:
         return jsonify(
-        code  = '404',
-        message   = 'Data Not Found',), 404
+            code  = '404',
+            message   = 'Data Not Found',), 404
         
     row_headers=[x[0] for x in cursor.description]
     json_data = []
@@ -223,8 +223,8 @@ def get_districts_by_district(district_id):
     
     if not result:
         return jsonify(
-        code  = '404',
-        message   = 'Data Not Found',), 404
+            code  = '404',
+            message   = 'Data Not Found',), 404
         
     row_headers=[x[0] for x in cursor.description]
     json_data = []
@@ -236,6 +236,29 @@ def get_districts_by_district(district_id):
         status    = 'OK',
         message   = 'Districts By District',
         data = json_data), 200
+    
+    
+@app.get('/village/<village_id>')    
+def get_village_detail(village_id):
+    params = [village_id]
+    query = "SELECT \
+            * \
+            FROM villages \
+            WHERE village_id = %s"
+    cursor = mysql.connection.cursor()
+    cursor.execute(query, params)
+    result = cursor.fetchall()
+    
+    if not result:
+        return jsonify(
+            code    = '404',
+            message = 'Data Not Found'),404
+        
+    return jsonify(
+        code = 200,
+        message = "Detail Village",
+        data = result 
+        ),200
 
 if __name__=='__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
