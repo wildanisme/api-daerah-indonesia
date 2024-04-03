@@ -14,19 +14,33 @@ mysql = MySQL(app)
 @app.route('/', methods=['GET','POST'])
 def index():
     data = {
-        'status' : 'OK',
         'code'  : 200,
+        'status' : True,
         'message'   : 'Welcome to a simple Indonesia Territories Api'
     }
     result = data
     return jsonify(result), 200
 
 @app.get('/provinces')
-def get_all_provinces():    
-    query = "SELECT * FROM provinces"
+def get_all_provinces():
+        
+    params = []
+    query = "SELECT * FROM provinces "
+    name = request.args.get('name')
+    
+    if name:
+        query +="WHERE name LIKE %s"
+        params.append("%{}%".format(name))
+        
     cursor = mysql.connection.cursor()
-    cursor.execute(query)
+    cursor.execute(query, params)
     result = cursor.fetchall()
+    
+    if not result:
+        return jsonify(
+                code  = '404',
+                message   = "Data Not FOund",), 404
+        
     row_headers=[x[0] for x in cursor.description]
     json_data = []
     for res in result:
@@ -34,8 +48,8 @@ def get_all_provinces():
             
     return jsonify(
         code  = '200',
-        status    = 'OK',
-        message   = 'All Provinces',
+        status    = True,
+        message   = 'All Provinces' if not name else 'Provinces with Param {}'.format(name),
         data = json_data), 200
     
 @app.get('/province/<province_id>')
@@ -55,11 +69,12 @@ def get_province_detail(province_id):
     json_data = []
     for res in result:
             json_data.append(dict(zip(row_headers,res)))
-            
+    name = [x[1] for x in result]
+    name = type(name)
     return jsonify(
         code  = '200',
-        status    = 'OK',
-        message   = 'Detail Province',
+        status    = True,
+        message   = 'Detail Province {}'.format(name[0]),
         data = json_data), 200
 
 @app.get('/regencies')
@@ -75,7 +90,7 @@ def get_all_regencies():
             
     return jsonify(
         code  = '200',
-        status    = 'OK',
+        status    = True,
         message   = 'All Regencies',
         data = json_data), 200
 
@@ -99,7 +114,7 @@ def get_regency_detail(regency_id):
             
     return jsonify(
         code  = '200',
-        status    = 'OK',
+        status    = True,
         message   = 'Detail Regency',
         data = json_data), 200
     
@@ -127,7 +142,7 @@ def get_regencies_by_province(province_id):
             
     return jsonify(
         code  = '200',
-        status    = 'OK',
+        status    = True,
         message   = 'Regencies By Province',
         data = json_data), 200
 
@@ -149,7 +164,7 @@ def get_all_districts():
             
     return jsonify(
         code  = '200',
-        status    = 'OK',
+        status    = True,
         message   = 'All Districts',
         data = json_data), 200
     
@@ -175,7 +190,7 @@ def get_district_detail(district_id):
             
     return jsonify(
         code  = '200',
-        status    = 'OK',
+        status    = True,
         message   = 'Detail District',
         data = json_data), 200    
 
@@ -204,7 +219,7 @@ def get_districts_by_regency(regency_id):
             
     return jsonify(
         code  = '200',
-        status    = 'OK',
+        status    = True,
         message   = 'Districts By Regency',
         data = json_data), 200
     
@@ -233,7 +248,7 @@ def get_districts_by_district(district_id):
             
     return jsonify(
         code  = '200',
-        status    = 'OK',
+        status    = True,
         message   = 'Districts By District',
         data = json_data), 200
     
