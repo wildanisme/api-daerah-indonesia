@@ -1,5 +1,3 @@
-import time
-
 from flask import Flask, request, jsonify, url_for, render_template
 from flask_mysqldb import MySQL
 from datetime import  datetime
@@ -32,12 +30,13 @@ def get_all_provinces():
     params = []
     query = "SELECT * FROM provinces "
     name = request.args.get('name')
-
+    
     # Check if request name exists
     if name:
-        query +="WHERE name LIKE %s"
+        query +="WHERE name LIKE %s "
         params.append("%{}%".format(name))
         
+    print(query)
     cursor = mysql.connection.cursor()
     cursor.execute(query, params)
     result = cursor.fetchall()
@@ -52,14 +51,13 @@ def get_all_provinces():
     for res in result:
             json_data.append(dict(zip(row_headers,res)))
 
-    print(type(json_data[0]))
     return jsonify(
         code  = '200',
         status    = True,
         message   = 'All Provinces' if not name else 'Provinces with Param {}'.format(name),
         data = json_data), 200
     
-@app.get('/province/<province_id>')
+@app.get('/provinces/<province_id>')
 def get_province_detail(province_id):    
     params = [province_id]
     query = "SELECT * FROM provinces WHERE province_id=%s"
@@ -113,7 +111,7 @@ def get_all_regencies():
         message   = 'All Regencies' if not name else 'Regencies with Param {}'.format(name),
         data = json_data), 200
 
-@app.get('/regency/<regency_id>')
+@app.get('/regencies/<regency_id>')
 def get_regency_detail(regency_id):    
     params = [regency_id]
     query = "SELECT * FROM regencies WHERE regency_id=%s"
@@ -201,7 +199,7 @@ def get_all_districts():
         message   = 'All Districts',
         data = json_data), 200
     
-@app.get('/district/<district_id>')
+@app.get('/districts/<district_id>')
 def get_district_detail(district_id):    
     params = [district_id]
     query = "SELECT \
@@ -321,7 +319,7 @@ def get_villages_by_district(district_id):
         data = json_data), 200
     
     
-@app.get('/village/<village_id>')    
+@app.get('/villages/<village_id>')    
 def get_village_detail(village_id):
     params = [village_id]
     query = "SELECT \

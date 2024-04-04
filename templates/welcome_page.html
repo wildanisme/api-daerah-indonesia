@@ -86,27 +86,27 @@ defined('BASEPATH') OR exit('No direct script access allowed');
         <h2>Data Semua Provinsi</h2>
 		<code>{{ url }}/provinces?name={optional:name}</code>
         <h2>Detail Provinsi</h2>
-		<code>{{ url }}/province/{required:province_id}</code>
+		<code>{{ url }}/provinces/{required:province_id}</code>
         <hr>
         <h2>Data Semua Kabupaten/Kota</h2>
 		<code>{{ url }}/regencies?name={optional:name}</code>
         <h2>Data Kabupaten/Kota Berdasarkan Provinsi</h2>
 		<code>{{ url }}/regencies/{required:province_id}</code>
         <h2>Detail Kabupaten/Kota</h2>
-		<code>{{ url }}/regency/{required:regency_id}</code>
+		<code>{{ url }}/regencies/{required:regency_id}</code>
         <hr>
         <h2>Data Semua Kecamatan</h2>
 		<code>{{ url }}/districts?name={optional:name}</code>
         <h2>Data Kecamatan Berdasarkan Kabupaten/Kota</h2>
 		<code>{{ url }}/districts/{required:regency_id}</code>
         <h2>Detail Kecamatan</h2>
-		<code>{{ url }}/district/{required:district_id}</code>
+		<code>{{ url }}/districts/{required:district_id}</code>
         <hr><h2>Data Semua Kelurahan/Desa</h2>
 		<code>{{ url }}/villages?name={optional:name}</code>
         <h2>Data Kelurahan/Desa Berdasarkan Kecamatan</h2>
 		<code>{{ url }}/villages/{required:district_id}</code>
         <h2>Detail Kelurahan/Desa</h2>
-		<code>{{ url }}/village/{required:village_id}</code>
+		<code>{{ url }}/villages/{required:village_id}</code>
         <hr>
         <p>Made with <span style="color: #e25555;">&#9829;</span> <a href="https://flask.palletsprojects.com/en/3.0.x/">Flask</a></p>
 	</div>
