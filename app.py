@@ -1,8 +1,12 @@
-from flask import Flask, request, jsonify
+import time
+
+from flask import Flask, request, jsonify, url_for, render_template
 from flask_mysqldb import MySQL
+from datetime import  datetime
 
 app = Flask(__name__)
 
+app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = ''
@@ -11,23 +15,25 @@ app.json.sort_keys = False
 
 mysql = MySQL(app)
 
+
 @app.route('/', methods=['GET','POST'])
 def index():
-    data = {
-        'code'  : 200,
-        'status' : True,
-        'message'   : 'Welcome to a simple Indonesia Territories Api'
-    }
-    result = data
-    return jsonify(result), 200
+    url = 'http://127.0.0.1:5000'
+    start = time.time()
+    end = time.time()
+    duration = float(end - start)
+
+    return render_template('welcome_page.html',
+                           duration=duration,
+                           url=url)
 
 @app.get('/provinces')
 def get_all_provinces():
-        
     params = []
     query = "SELECT * FROM provinces "
     name = request.args.get('name')
-    
+
+    # Check if request name exists
     if name:
         query +="WHERE name LIKE %s"
         params.append("%{}%".format(name))
@@ -39,13 +45,14 @@ def get_all_provinces():
     if not result:
         return jsonify(
                 code  = '404',
-                message   = "Data Not FOund",), 404
+                message   = "Data Not Found",), 404
         
     row_headers=[x[0] for x in cursor.description]
     json_data = []
     for res in result:
             json_data.append(dict(zip(row_headers,res)))
-            
+
+    print(type(json_data[0]))
     return jsonify(
         code  = '200',
         status    = True,
@@ -69,20 +76,32 @@ def get_province_detail(province_id):
     json_data = []
     for res in result:
             json_data.append(dict(zip(row_headers,res)))
-    name = [x[1] for x in result]
-    name = type(name)
+
     return jsonify(
         code  = '200',
         status    = True,
-        message   = 'Detail Province {}'.format(name[0]),
+        message   = 'Detail Province {}'.format(json_data[0]['name']),
         data = json_data), 200
 
 @app.get('/regencies')
 def get_all_regencies():    
+    params = []
     query = "SELECT * FROM regencies"
+    name = request.args.get('name')
+
+    if name:
+        query += " WHERE name LIKE %s"
+        params.append('%{}%'.format(name))
+
     cursor = mysql.connection.cursor()
-    cursor.execute(query)
+    cursor.execute(query, params)
     result = cursor.fetchall()
+
+    if not result:
+        return jsonify(
+            code  = '404',
+            message   = 'Data Not Found',), 404
+
     row_headers=[x[0] for x in cursor.description]
     json_data = []
     for res in result:
@@ -91,7 +110,7 @@ def get_all_regencies():
     return jsonify(
         code  = '200',
         status    = True,
-        message   = 'All Regencies',
+        message   = 'All Regencies' if not name else 'Regencies with Param {}'.format(name),
         data = json_data), 200
 
 @app.get('/regency/<regency_id>')
@@ -115,7 +134,7 @@ def get_regency_detail(regency_id):
     return jsonify(
         code  = '200',
         status    = True,
-        message   = 'Detail Regency',
+        message   = 'Detail Regency {}'.format(json_data[0]['name']),
         data = json_data), 200
     
 @app.get('/regencies/<province_id>')
@@ -147,16 +166,30 @@ def get_regencies_by_province(province_id):
         data = json_data), 200
 
 @app.get('/districts')
-def get_all_districts():    
+def get_all_districts():
+    params = []
+    query = "SELECT \
+            dis.district_id as district_id, dis.name AS district_name, \
+            reg.regency_id as regency_id, reg.name AS regency_name,  \
+            prov.province_id AS province_id, prov.name AS province_name \
+            FROM districts AS dis \
+            JOIN regencies AS reg ON dis.regency_id = reg.regency_id \
+            JOIN provinces AS prov ON reg.province_id = prov.province_id "
+    name = request.args.get('name')
+
+    if name:
+        query += "WHERE dis.name LIKE %s"
+        params.append("%{}%".format(name))
+
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT \
-                    dis.district_id as district_id, dis.name AS district_name, \
-                    reg.regency_id as regency_id, reg.name AS regency_name,  \
-                    prov.province_id AS province_id, prov.name AS province_name \
-                    FROM districts AS dis \
-                    JOIN regencies AS reg ON dis.regency_id = reg.regency_id \
-                    JOIN provinces AS prov ON reg.province_id = prov.province_id ")
+    cursor.execute(query, params)
     result = cursor.fetchall()
+
+    if not result:
+        return jsonify(
+            code = '404',
+            message = 'Data Not Found',), 404
+
     row_headers=[x[0] for x in cursor.description]
     json_data = []
     for res in result:
@@ -224,8 +257,43 @@ def get_districts_by_regency(regency_id):
         data = json_data), 200
     
 
+@app.get('/villages')
+def get_all_villages():
+    params = []
+    name = request.args.get('name')
+    query = ("SELECT \
+             vil.village_id AS village_id, vil.name AS village_name, \
+             dis.name AS district_name, reg.name AS regency_name, prov.name AS province_name \
+             FROM villages AS vil \
+             JOIN districts AS dis ON vil.district_id = dis.district_id \
+             JOIN regencies AS reg ON dis.regency_id = reg.regency_id \
+             JOIN provinces AS prov ON reg.province_id = prov.province_id ")
+
+    if name:
+        query +=" WHERE vil.name LIKE %s "
+        params.append("%{}%".format(name))
+
+    cursor = mysql.connection.cursor()
+    cursor.execute(query, params)
+    result = cursor.fetchall()
+
+    if not result:
+        return jsonify(
+            code    = '404',
+            message = 'Data Not Found',), 404
+
+    row_headers = [x[0] for x in cursor.description]
+    json_data = []
+    for res in result:
+        json_data.append(dict(zip(row_headers, res)))
+
+    return jsonify(
+        code    = '200',
+        status  = True,
+        message = 'All Villages' if not name else 'Villages With Params {}'.format(name),
+        data = json_data),200
 @app.get('/villages/<district_id>')
-def get_districts_by_district(district_id):
+def get_villages_by_district(district_id):
     params = [district_id]
     query = "SELECT \
             reg.province_id as province_id, prov.name as province_name, reg.district_id AS district_id, reg.name as district_name \
@@ -276,4 +344,7 @@ def get_village_detail(village_id):
         ),200
 
 if __name__=='__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0',
+            port=5000,
+            debug=True,
+            reloader=False)
