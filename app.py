@@ -25,6 +25,47 @@ def index():
                            duration=duration,
                            url=url)
 
+@app.get('/query')
+def query():
+    params = []
+    query = "SELECT \
+            prov.province_id AS province_id, prov.name AS province_name, prov.capital_city AS capital_city, \
+            reg.regency_id AS regency_id, reg.name AS regency_name, \
+            dis.district_id AS district_id, dis.name AS district_name, \
+            vil.village_id AS village_id, vil.name AS village_name \
+            FROM provinces AS prov\
+            JOIN regencies AS reg ON prov.province_id = reg.province_id \
+            JOIN districts AS dis ON reg.regency_id = dis.regency_id \
+            JOIN villages AS vil ON dis.district_id = vil.district_id "
+    province = request.args.get('province')
+
+    # Check if request name exists
+    if province:
+        query +="WHERE prov.name LIKE %s "
+        params.append("%{}%".format(province))
+    
+    
+    print(query)
+    cursor = mysql.connection.cursor()
+    cursor.execute(query, params)
+    result = cursor.fetchall()
+    
+    if not result:
+        return jsonify(
+                code  = '404',
+                message   = "Data Not Found",), 404
+        
+    row_headers=[x[0] for x in cursor.description]
+    json_data = []
+    for res in result:
+            json_data.append(dict(zip(row_headers,res)))
+
+    return jsonify(
+        code  = '200',
+        status    = True,
+        message   = 'Query Result',
+        data = json_data), 200
+
 @app.get('/provinces')
 def get_all_provinces():
     params = []
