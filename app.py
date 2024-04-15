@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify, url_for, render_template
 from flask_mysqldb import MySQL
-from datetime import  datetime
 
 app = Flask(__name__)
 
@@ -17,12 +16,8 @@ mysql = MySQL(app)
 @app.route('/', methods=['GET','POST'])
 def index():
     url = 'http://127.0.0.1:5000'
-    start = time.time()
-    end = time.time()
-    duration = float(end - start)
 
     return render_template('welcome_page.html',
-                           duration=duration,
                            url=url)
 
 @app.get('/query')
